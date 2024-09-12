@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# گرفتن ورودی برای آدرس‌های IP
+echo "Please enter the list of IPs (IPv4/IPv6), separated by spaces:"
+read -a ip_list
+
+# گرفتن ورودی برای کشور مورد نظر
+echo "Please enter the desired country for location lookup:"
+read country
+
+# فیلتر کردن آی‌پی‌های نسخه ۶
+ipv6_list=()
+for ip in "${ip_list[@]}"; do
+    if [[ $ip == *":"* ]]; then
+        ipv6_list+=($ip)
+    fi
+done
+
+# نمایش آی‌پی‌های نسخه ۶
+if [ ${#ipv6_list[@]} -eq 0 ]; then
+    echo "No IPv6 addresses found."
+else
+    echo "IPv6 addresses found:"
+    for ipv6 in "${ipv6_list[@]}"; do
+        echo $ipv6
+    done
+fi
+
+# استفاده از geoiplookup برای پیدا کردن مکان
+if command -v geoiplookup > /dev/null; then
+    for ipv6 in "${ipv6_list[@]}"; do
+        location=$(geoiplookup $ipv6)
+        if [[ $location == *"$country"* ]]; then
+            echo "IPv6 $ipv6 is from $country."
+        else
+            echo "IPv6 $ipv6 is not from $country."
+        fi
+    done
+else
+    echo "Please install geoiplookup to use location features."
+fi
